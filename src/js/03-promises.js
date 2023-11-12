@@ -5,11 +5,6 @@ document.querySelector('.form').addEventListener('submit', function (event) {
   const step = parseInt(this.elements.step.value, 10);
   const amount = parseInt(this.elements.amount.value, 10);
 
-  if (isNaN(firstDelay) || isNaN(step) || isNaN(amount)) {
-    alert('Please enter valid numbers for delay, step, and amount.');
-    return;
-  }
-
   for (let i = 1; i <= amount; i++) {
     createPromise(i, firstDelay + (i - 1) * step)
       .then(({ position, delay }) => {
@@ -25,12 +20,8 @@ function createPromise(position, delay) {
   const shouldResolve = Math.random() > 0.3;
 
   return new Promise((resolve, reject) => {
-    if (shouldResolve) {
-      setTimeout(() => {
-        resolve({ position, delay });
-      }, delay);
-    } else {
-      reject({ position, delay });
-    }
+    setTimeout(() => {
+      shouldResolve ? resolve({ position, delay }) : reject({ position, delay });
+    }, delay);
   });
 }

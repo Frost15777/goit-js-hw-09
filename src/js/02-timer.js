@@ -1,6 +1,8 @@
 import flatpickr from "flatpickr";
 import "flatpickr/dist/flatpickr.min.css";
 
+const startButton = document.querySelector('[data-start]');
+
 const options = {
   enableTime: true,
   time_24hr: true,
@@ -11,9 +13,9 @@ const options = {
 
     if (selectedDate < new Date()) {
       alert('Please choose a date in the future');
-      document.querySelector('[data-start]').disabled = true;
+      startButton.disabled = true;
     } else {
-      document.querySelector('[data-start]').disabled = false;
+      startButton.disabled = false;
     }
   },
 };
@@ -35,7 +37,7 @@ function updateTimer(endTime) {
   if (timeDifference <= 0) {
     clearInterval(timerInterval);
     showSuccessMessage();
-    document.querySelector('[data-start]').disabled = true;
+    startButton.disabled = true;
     return;
   }
 
@@ -49,12 +51,18 @@ function updateTimer(endTime) {
 
 let timerInterval;
 
-document.querySelector('[data-start]').addEventListener('click', () => {
+startButton.addEventListener('click', () => {
   const selectedDate = flatpickr("#datetime-picker").selectedDates[0];
 
   if (selectedDate) {
-    const endTime = selectedDate.getTime();
-    timerInterval = setInterval(() => updateTimer(endTime), 1000);
+    const currentTime = new Date().getTime();
+
+    if (selectedDate.getTime() > currentTime) {
+      const endTime = selectedDate.getTime();
+      timerInterval = setInterval(() => updateTimer(endTime), 1000);
+    } else {
+      alert('Please choose a date in the future');
+    }
   }
 });
 
