@@ -2,6 +2,11 @@ import flatpickr from "flatpickr";
 import "flatpickr/dist/flatpickr.min.css";
 
 const startButton = document.querySelector('[data-start]');
+const daysField = document.querySelector('[data-days]');
+const hoursField = document.querySelector('[data-hours]');
+const minutesField = document.querySelector('[data-minutes]');
+const secondsField = document.querySelector('[data-seconds]');
+const dateTimePicker = document.getElementById('datetime-picker');
 
 const options = {
   enableTime: true,
@@ -10,8 +15,8 @@ const options = {
   minuteIncrement: 1,
   onClose(selectedDates) {
     const selectedDate = selectedDates[0];
-
-    if (selectedDate < new Date()) {
+    const now = new Date();
+    if (selectedDate < now) {
       alert('Please choose a date in the future');
       startButton.disabled = true;
     } else {
@@ -20,62 +25,39 @@ const options = {
   },
 };
 
-flatpickr("#datetime-picker", options);
+flatpickr(dateTimePicker, options);
 
-function addLeadingZero(value) {
-  return value.toString().padStart(2, '0');
-}
+let countdownInterval;
+let targetDate;
 
-function showSuccessMessage() {
-  alert('Countdown completed!');
-}
-
-function updateTimer(endTime) {
+const updateTimer = () => {
   const currentDate = new Date();
-  const timeDifference = endTime - currentDate;
+  const remainingTime = targetDate - currentDate;
 
-  if (timeDifference <= 0) {
-    clearInterval(timerInterval);
-    showSuccessMessage();
+  if (remainingTime < 0) {
+    clearInterval(countdownInterval);
     startButton.disabled = true;
+    dateTimePicker.disabled = false;
+    alert('Countdown completed!');
     return;
   }
 
-  const { days, hours, minutes, seconds } = convertMs(timeDifference);
+  const days = Math.floor(remainingTime / (1000 * 60 * 60 * 24)).toString().padStart(2, '0');
+  const hours = Math.floor((remainingTime / (1000 * 60 * 60)) % 24).toString().padStart(2, '0');
+  const minutes = Math.floor((remainingTime / 1000 / 60) % 60).toString().padStart(2, '0');
+  const seconds = Math.floor((remainingTime / 1000) % 60).toString().padStart(2, '0');
 
-  document.querySelector('[data-days]').textContent = addLeadingZero(days);
-  document.querySelector('[data-hours]').textContent = addLeadingZero(hours);
-  document.querySelector('[data-minutes]').textContent = addLeadingZero(minutes);
-  document.querySelector('[data-seconds]').textContent = addLeadingZero(seconds);
-}
+  daysField.textContent = days;
+  hoursField.textContent = hours;
+  minutesField.textContent = minutes;
+  secondsField.textContent = seconds;
+};
 
-let timerInterval;
+const startCountdown = () => {
+  targetDate = new Date(dateTimePicker.value);
+  countdownInterval = setInterval(updateTimer, 1000);
+  startButton.disabled = true;  
+  dateTimePicker.disabled = true;
+};
 
-startButton.addEventListener('click', () => {
-  const selectedDate = flatpickr("#datetime-picker").selectedDates[0];
-
-  if (selectedDate) {
-    const currentTime = new Date().getTime();
-
-    if (selectedDate.getTime() > currentTime) {
-      const endTime = selectedDate.getTime();
-      timerInterval = setInterval(() => updateTimer(endTime), 1000);
-    } else {
-      alert('Please choose a date in the future');
-    }
-  }
-});
-
-function convertMs(ms) {
-  const second = 1000;
-  const minute = second * 60;
-  const hour = minute * 60;
-  const day = hour * 24;
-
-  const days = Math.floor(ms / day);
-  const hours = Math.floor((ms % day) / hour);
-  const minutes = Math.floor(((ms % day) % hour) / minute);
-  const seconds = Math.floor((((ms % day) % hour) % minute) / second);
-
-  return { days, hours, minutes, seconds };
-}
+startButton.addEventListener('click', startCountdown);
